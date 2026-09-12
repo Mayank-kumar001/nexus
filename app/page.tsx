@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Brand } from "@/components/brand";
+import { HomeLoadingGate } from "@/components/home-loading-gate";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/session";
 
@@ -7,7 +8,8 @@ export default async function Home() {
   const user = await getCurrentUser();
 
   return (
-    <div className="relative flex min-h-full flex-1 flex-col overflow-hidden">
+    <HomeLoadingGate>
+      <div className="relative flex min-h-full flex-1 flex-col overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,color-mix(in_oklch,var(--primary)_28%,transparent),transparent_42%)]" />
 
       {/* ── Header ── */}
@@ -262,7 +264,8 @@ export default async function Home() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </HomeLoadingGate>
   );
 }
 

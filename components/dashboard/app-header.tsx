@@ -44,7 +44,7 @@ export function AppHeader({ user }: { user: AppUser }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 sm:h-16 w-full max-w-6xl items-center justify-between gap-2 px-3 sm:px-4">
+      <div className="mx-auto flex h-24 sm:h-28 w-full max-w-6xl items-center justify-between gap-2 px-3 sm:px-4">
         <Brand />
         <nav className="hidden items-center gap-1 md:flex">
           {links.map((link) => (
