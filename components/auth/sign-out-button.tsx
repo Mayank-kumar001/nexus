@@ -12,7 +12,7 @@ export function SignOutButton() {
       variant="ghost"
       size="sm"
       onClick={async () => {
-        await authClient.signOut();
+        await authClient.auth.signOut();
         router.push("/");
         router.refresh();
       }}

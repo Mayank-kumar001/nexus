@@ -1,9 +1,8 @@
-import { headers } from "next/headers";
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import { auth } from "./auth";
-import { prisma } from "./db";
-import { isCoreEmail, USER_ROLES, type UserRole } from "./roles";
+import { supabaseServer } from "./supabase-server";
+import { CENTRAL_TEAM_ID } from "./central";
+import { USER_ROLES, type UserRole } from "./roles";
 
 export type AppUser = {
   id: string;
@@ -16,39 +15,38 @@ export type AppUser = {
 };
 
 export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) return null;
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  });
-
-  if (!dbUser) return null;
-
-  const role: UserRole = isCoreEmail(dbUser.email)
-    ? USER_ROLES.CORE
-    : dbUser.role === USER_ROLES.CORE
-      ? USER_ROLES.CORE
-      : USER_ROLES.MEMBER;
-
-  if (role !== dbUser.role) {
-    await prisma.user.update({
-      where: { id: dbUser.id },
-      data: { role },
-    });
+  const db = await supabaseServer();
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return null;
+  let { data: profile } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  if (!profile) {
+    const { data: createdProfile } = await db
+      .from("profiles")
+      .insert({
+        id: user.id,
+        full_name: String(user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.email?.split("@")[0] ?? "Member"),
+        department: String(user.user_metadata?.department ?? "Technical"),
+        enrollment_no: null,
+        team_id: CENTRAL_TEAM_ID,
+        sprint_track: null,
+        is_active: true,
+      })
+      .select("*")
+      .maybeSingle();
+    profile = createdProfile;
   }
+  if (!profile) return null;
+  const { data: roleRow } = await db.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+  const role: UserRole = roleRow?.role === "core" || roleRow?.role === "lead" ? USER_ROLES.CORE : USER_ROLES.MEMBER;
 
   return {
-    id: dbUser.id,
-    name: dbUser.name,
-    email: dbUser.email,
-    image: dbUser.image,
+    id: user.id,
+    name: profile.full_name,
+    email: user.email ?? "",
+    image: profile.avatar_path,
     role,
-    department: dbUser.department,
-    team: dbUser.team,
+    department: profile.department,
+    team: profile.team_id,
   };
 });
 

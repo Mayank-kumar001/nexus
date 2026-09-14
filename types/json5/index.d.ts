@@ -1,0 +1,1 @@
+declare namespace JSON5 {}

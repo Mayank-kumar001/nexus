@@ -1,9 +1,11 @@
 import { AchievementForm } from "@/components/dashboard/achievement-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/session";
+import { getCentralActivities } from "@/lib/central-records";
 
 export default async function SubmitPage() {
   const user = await requireUser();
+  const activities = await getCentralActivities();
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -24,6 +26,7 @@ export default async function SubmitPage() {
           <AchievementForm
             defaultName={user.name}
             defaultDepartment={user.department}
+            activities={activities}
           />
         </CardContent>
       </Card>

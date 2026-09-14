@@ -1,21 +1,21 @@
-import { prisma } from "./db";
+import { centralDb, centralError, CENTRAL_TEAM_ID } from "./central";
 import { DEPARTMENTS } from "./constants";
 
 export async function getTeamProgress() {
-  const [verifiedByDepartment, totals] = await Promise.all([
-    prisma.achievement.groupBy({
-      by: ["department"],
-      where: { status: "VERIFIED" },
-      _count: { _all: true },
-    }),
-    prisma.achievement.groupBy({
-      by: ["status"],
-      _count: { _all: true },
-    }),
-  ]);
+  const { data, error } = await centralDb()
+    .from("submissions")
+    .select("status, member_id")
+    .eq("team_id", CENTRAL_TEAM_ID);
+  if (error) throw new Error(centralError(error));
 
-  const countFor = (status: "PENDING" | "VERIFIED" | "REJECTED") =>
-    totals.find((row) => row.status === status)?._count._all ?? 0;
+  const submissions = data ?? [];
+  const memberIds = [...new Set(submissions.map((row) => row.member_id))];
+  const { data: profiles, error: profileError } = memberIds.length
+    ? await centralDb().from("profiles").select("id, department").in("id", memberIds)
+    : { data: [], error: null };
+  if (profileError) throw new Error(centralError(profileError));
+
+  const countFor = (status: string) => submissions.filter((row) => row.status === status).length;
 
   const verifiedTotal = countFor("VERIFIED");
   const pendingTotal = countFor("PENDING");
@@ -23,8 +23,9 @@ export async function getTeamProgress() {
   const departmentRows = [...DEPARTMENTS]
     .map((department) => ({
       department,
-      verifiedCount:
-        verifiedByDepartment.find((row) => row.department === department)?._count._all ?? 0,
+      verifiedCount: submissions.filter(
+        (row) => row.status === "verified" && profiles?.find((profile) => profile.id === row.member_id)?.department === department
+      ).length,
     }))
     .sort((a, b) => b.verifiedCount - a.verifiedCount);
 

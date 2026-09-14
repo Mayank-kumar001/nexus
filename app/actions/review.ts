@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
+import { centralDb, centralError } from "@/lib/central";
 import { requireCore } from "@/lib/session";
 
 export type ReviewState = {
@@ -13,22 +13,20 @@ export async function verifyAchievement(formData: FormData): Promise<ReviewState
   const reviewer = await requireCore();
   const id = String(formData.get("id") ?? "");
 
-  const existing = await prisma.achievement.findUnique({ where: { id } });
+  const { data: existing, error: lookupError } = await centralDb()
+    .from("submissions")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  if (lookupError) return { ok: false, message: centralError(lookupError) };
   if (!existing) return { ok: false, message: "Record not found." };
-  if (existing.status !== "PENDING") {
-    return { ok: false, message: "This record has already been reviewed." };
-  }
+  if (existing.status !== "pending") return { ok: false, message: "This record has already been reviewed." };
 
-  await prisma.achievement.update({
-    where: { id },
-    data: {
-      status: "VERIFIED",
-      centralSyncStatus: "READY",
-      reviewedById: reviewer.id,
-      reviewedAt: new Date(),
-      rejectionReason: null,
-    },
+  const { error } = await centralDb().rpc("decide_submission", {
+    p_submission_id: id,
+    p_decision: "verified",
   });
+  if (error) return { ok: false, message: centralError(error) };
 
   revalidatePath("/dashboard");
   revalidatePath("/review");
@@ -50,21 +48,21 @@ export async function rejectAchievement(
     return { ok: false, message: "Add a short reason so the member can correct this later." };
   }
 
-  const existing = await prisma.achievement.findUnique({ where: { id } });
+  const { data: existing, error: lookupError } = await centralDb()
+    .from("submissions")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  if (lookupError) return { ok: false, message: centralError(lookupError) };
   if (!existing) return { ok: false, message: "Record not found." };
-  if (existing.status !== "PENDING") {
-    return { ok: false, message: "This record has already been reviewed." };
-  }
+  if (existing.status !== "pending") return { ok: false, message: "This record has already been reviewed." };
 
-  await prisma.achievement.update({
-    where: { id },
-    data: {
-      status: "REJECTED",
-      reviewedById: reviewer.id,
-      reviewedAt: new Date(),
-      rejectionReason,
-    },
+  const { error } = await centralDb().rpc("decide_submission", {
+    p_submission_id: id,
+    p_decision: "rejected",
+    p_note: rejectionReason,
   });
+  if (error) return { ok: false, message: centralError(error) };
 
   revalidatePath("/dashboard");
   revalidatePath("/review");

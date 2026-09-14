@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { TEAM_NAME } from "@/lib/constants";
+import { getCentralRecords } from "@/lib/central-records";
 
 function unauthorized() {
   return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,25 +20,7 @@ export async function GET(request: NextRequest) {
     return unauthorized();
   }
 
-  const markSynced = request.nextUrl.searchParams.get("markSynced") === "true";
-
-  const records = await prisma.achievement.findMany({
-    where: { status: "VERIFIED" },
-    orderBy: { reviewedAt: "asc" },
-    include: {
-      reviewer: { select: { id: true, name: true, email: true } },
-    },
-  });
-
-  if (markSynced && records.length > 0) {
-    await prisma.achievement.updateMany({
-      where: { id: { in: records.map((record) => record.id) } },
-      data: {
-        centralSyncStatus: "SYNCED",
-        exportedAt: new Date(),
-      },
-    });
-  }
+  const records = await getCentralRecords("verified");
 
   return Response.json({
     source: "arrvak-nexus-dashboard",
@@ -48,16 +29,17 @@ export async function GET(request: NextRequest) {
     count: records.length,
     records: records.map((record) => ({
       id: record.id,
-      memberName: record.memberName,
-      department: record.department,
-      team: TEAM_NAME,
-      achievedOn: record.achievedOn.toISOString().slice(0, 10),
+      memberName: record.member?.full_name ?? null,
+      department: record.member?.department ?? null,
+      teamId: record.team_id,
+      achievedOn: record.occurred_on,
+      activity: record.activity?.label ?? null,
       details: record.details,
-      proofUrl: record.proofUrl,
-      verifiedAt: record.reviewedAt?.toISOString() ?? null,
-      verifiedBy: record.reviewer,
-      submittedAt: record.createdAt.toISOString(),
-      centralSyncStatus: markSynced ? "SYNCED" : record.centralSyncStatus,
+      proofUrl: record.external_url,
+      verifiedAt: record.decided_at,
+      verifiedBy: record.decided_by,
+      submittedAt: record.submitted_at,
+      status: record.status,
     })),
   });
 }

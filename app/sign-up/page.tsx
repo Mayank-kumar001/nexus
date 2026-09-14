@@ -13,7 +13,7 @@ export default async function SignUpPage() {
         <Brand className="mb-8" />
         <h1 className="font-heading text-2xl font-bold">Create your account</h1>
         <p className="mt-2 mb-8 text-sm text-muted-foreground">
-          Join the team using your GitHub account.
+          Create your central Supabase account with email and password.
         </p>
         <SignUpForm />
       </div>

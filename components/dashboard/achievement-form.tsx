@@ -11,18 +11,28 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { CentralActivity } from "@/lib/central";
 
 const initial: SubmitState = { ok: false, message: "" };
 
 export function AchievementForm({
   defaultName,
   defaultDepartment,
+  activities,
 }: {
   defaultName: string;
   defaultDepartment?: string | null;
+  activities: CentralActivity[];
 }) {
   const [state, formAction, pending] = useActionState(submitAchievement, initial);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [showIndividual, setShowIndividual] = useState(true);
+  const [showTeam, setShowTeam] = useState(false);
+
+  const visibleActivities = activities.filter((activity) => {
+    return (showIndividual && activity.scope === "individual") || (showTeam && activity.scope === "team");
+  });
 
   useEffect(() => {
     if (!state.message) return;
@@ -73,6 +83,34 @@ export function AchievementForm({
               </NativeSelectOption>
             ))}
           </NativeSelect>
+        </div>
+        <div className="flex flex-col gap-2 sm:col-span-2">
+          <Label htmlFor="activityId">Activity</Label>
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <label className="flex items-center gap-2">
+              <Checkbox checked={showIndividual} onCheckedChange={(checked) => setShowIndividual(checked === true)} />
+              Individual activities
+            </label>
+            <label className="flex items-center gap-2">
+              <Checkbox checked={showTeam} onCheckedChange={(checked) => setShowTeam(checked === true)} />
+              Team events
+            </label>
+          </div>
+          <NativeSelect id="activityId" name="activityId" required className="w-full">
+            <NativeSelectOption value="">Select activity</NativeSelectOption>
+            {visibleActivities.map((activity) => (
+              <NativeSelectOption key={activity.id} value={activity.id}>
+                {activity.label}
+                {` · ${activity.category.replace("_", " ")}`}
+                {` · ${activity.scope}`}
+                {activity.level ? ` · ${activity.level}` : ""}
+                {activity.points !== null ? ` · ${activity.points} points` : ""}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+          {visibleActivities.length === 0 ? (
+            <p className="text-sm text-destructive">Select Individual activities or Team events.</p>
+          ) : null}
         </div>
       </div>
       <div className="flex flex-col gap-2">

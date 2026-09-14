@@ -14,7 +14,7 @@ export default async function SignInPage() {
         <Brand className="mb-8" />
         <h1 className="font-heading text-2xl font-bold">Sign in</h1>
         <p className="mt-2 mb-8 text-sm text-muted-foreground">
-          Sign in with your GitHub account to access the workspace.
+          Sign in with your central Supabase account to access the workspace.
         </p>
         <Suspense>
           <SignInForm />

@@ -1,11 +1,10 @@
 export const DEPARTMENTS = [
   "Technical",
+  "PR",
   "Design",
-  "Content",
-  "Events",
-  "Outreach",
-  "Operations",
-  "Core",
+  "Event Mgt",
+  "Social",
+  "R&D",
 ] as const;
 
 export const TEAM_NAME = "Nexus";

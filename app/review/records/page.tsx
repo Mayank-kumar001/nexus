@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { prisma } from "@/lib/db";
+import { getCentralRecords } from "@/lib/central-records";
 import { requireCore } from "@/lib/session";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,16 +13,14 @@ import {
 } from "@/components/ui/table";
 
 function statusVariant(status: string) {
-  if (status === "VERIFIED") return "default" as const;
-  if (status === "REJECTED") return "destructive" as const;
+  if (status === "verified") return "default" as const;
+  if (status === "rejected") return "destructive" as const;
   return "outline" as const;
 }
 
 export default async function RecordsPage() {
   await requireCore();
-  const records = await prisma.achievement.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  const records = await getCentralRecords();
 
   return (
     <>
@@ -57,16 +55,16 @@ export default async function RecordsPage() {
                 <TableRow key={record.id}>
                   <TableCell>
                     <Link href={`/review/${record.id}`} className="hover:underline">
-                      {record.memberName}
+                      {record.member?.full_name ?? "Unknown member"}
                     </Link>
                   </TableCell>
-                  <TableCell>{record.department}</TableCell>
-                  <TableCell>{format(record.achievedOn, "d MMM yyyy")}</TableCell>
+                  <TableCell>{record.member?.department ?? "Unknown"}</TableCell>
+                  <TableCell>{format(new Date(record.occurred_on), "d MMM yyyy")}</TableCell>
                   <TableCell>
                     <Badge variant={statusVariant(record.status)}>{record.status}</Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {record.centralSyncStatus}
+                    Central
                   </TableCell>
                 </TableRow>
               ))

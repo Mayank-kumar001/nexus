@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { prisma } from "@/lib/db";
+import { getCentralRecords } from "@/lib/central-records";
 import { requireCore } from "@/lib/session";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,10 +13,7 @@ import {
 
 export default async function ReviewPage() {
   await requireCore();
-  const pending = await prisma.achievement.findMany({
-    where: { status: "PENDING" },
-    orderBy: { createdAt: "asc" },
-  });
+  const pending = await getCentralRecords("pending");
 
   return (
     <>
@@ -42,16 +39,16 @@ export default async function ReviewPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardTitle>{item.memberName}</CardTitle>
+                      <CardTitle>{item.member?.full_name ?? "Unknown member"}</CardTitle>
                       <CardDescription>
-                        {item.department} · {format(item.achievedOn, "d MMM yyyy")}
+                        {item.member?.department ?? "Unknown department"} · {format(new Date(item.occurred_on), "d MMM yyyy")}
                       </CardDescription>
                     </div>
                     <Badge variant="outline">Pending</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="line-clamp-2 text-sm text-muted-foreground">{item.details}</p>
+                  <p className="line-clamp-2 text-sm text-muted-foreground">{item.details ?? item.title}</p>
                 </CardContent>
               </Card>
             </Link>
