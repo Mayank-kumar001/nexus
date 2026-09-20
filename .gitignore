@@ -45,6 +45,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+tsconfig.json
 
 /lib/generated/prisma
 
@@ -72,3 +73,13 @@ service-account.json
 #agents 
 /.agents
 /.agent
+
+# Scratch and test files
+/scratch
+/check*.ts
+/check*.js
+/fetch*.ts
+/test*.ts
+/test*.js
+/query*.ts
+/query*.js

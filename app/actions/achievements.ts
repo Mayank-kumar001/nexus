@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { DEPARTMENTS, TEAM_NAME } from "@/lib/constants";
+import { DEPARTMENTS } from "@/lib/constants";
+import { getTeamName } from "@/lib/team";
 import { uploadProofImage } from "@/lib/imagekit";
 import { centralError, CENTRAL_ACTIVITIES, CENTRAL_TEAM_ID } from "@/lib/central";
 import { requireUser } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase-server";
+import { prisma } from "@/lib/db";
 
 export type SubmitState = {
   ok: boolean;
@@ -54,28 +56,38 @@ export async function submitAchievement(
 
     const activity = CENTRAL_ACTIVITIES.find((item) => item.id === activityId);
     if (!activity) throw new Error("Selected activity is not available.");
-    const db = await supabaseServer();
-    const submissionId = crypto.randomUUID();
-    const { error } = await db.rpc("submit_achievement", {
-      p_id: submissionId,
-      p_team_id: CENTRAL_TEAM_ID,
-      p_activity_id: activity.id,
-      p_title: `${TEAM_NAME}: ${memberName}`,
-      p_occurred_on: achievedOnRaw,
-      p_details: `${department}: ${details}`,
-      p_external_url: uploaded.url,
-      p_proofs: [
-        {
-          team_id: CENTRAL_TEAM_ID,
-          storage_path: uploaded.url,
-          file_name: proof.name,
-          mime_type: proof.type,
-          size_bytes: proof.size,
-        },
-      ],
+    
+    const teamName = await getTeamName();
+
+    const localUser = await prisma.user.upsert({
+      where: { email: user.email },
+      update: { name: user.name, image: user.image },
+      create: { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name, 
+        image: user.image,
+        role: user.role,
+        department: user.department,
+        team: user.team 
+      }
     });
 
-    if (error) throw new Error(centralError(error));
+    await prisma.achievement.create({
+      data: {
+        memberName,
+        department,
+        team: teamName,
+        achievedOn,
+        details,
+        proofUrl: uploaded.url,
+        proofFileId: uploaded.fileId,
+        status: "PENDING",
+        centralSyncStatus: "NOT_SYNCED",
+        submitterId: localUser.id,
+        activityId: activity.id,
+      }
+    });
 
     revalidatePath("/dashboard");
     revalidatePath("/review");
@@ -86,8 +98,9 @@ export async function submitAchievement(
         "Submission received. Core members will verify it before it can count toward the official AARVAK Point System.",
     };
   } catch (error) {
+    console.error("===== submitAchievement ERROR =====", error);
     const message =
-      error instanceof Error ? error.message : "Could not save this achievement.";
+      error instanceof Error ? error.message : "Could not save this achievement. " + JSON.stringify(error);
     return { ok: false, message };
   }
 }

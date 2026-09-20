@@ -5,16 +5,17 @@ export const USER_ROLES = {
 
 export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 
-export function parseCoreEmails() {
-  return (process.env.CORE_MEMBER_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
+import { getTeamSettings } from "./team";
+
+export async function parseCoreEmails() {
+  const settings = await getTeamSettings();
+  return settings.coreMemberEmails;
 }
 
-export function isCoreEmail(email: string | null | undefined) {
+export async function isCoreEmail(email: string | null | undefined) {
   if (!email) return false;
-  return parseCoreEmails().includes(email.toLowerCase());
+  const coreEmails = await parseCoreEmails();
+  return coreEmails.includes(email.toLowerCase());
 }
 
 export function isCoreRole(role: string | null | undefined) {

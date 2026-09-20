@@ -108,6 +108,7 @@ model Achievement {
   centralSyncStatus CentralSyncStatus @default(NOT_SYNCED)
   centralRecordId   String?           @unique
   exportedAt        DateTime?
+  activityId        String?
 
   submitterId String
   submitter   User     @relation("SubmittedAchievements", fields: [submitterId], references: [id], onDelete: Cascade)

@@ -41,7 +41,7 @@ export const auth = betterAuth({
           return {
             data: {
               ...user,
-              role: isCoreEmail(user.email) ? USER_ROLES.CORE : USER_ROLES.MEMBER,
+              role: (await isCoreEmail(user.email)) ? USER_ROLES.CORE : USER_ROLES.MEMBER,
             },
           };
         },
