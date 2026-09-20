@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { getCentralRecords } from "@/lib/central-records";
+import { prisma } from "@/lib/db";
 import { requireCore } from "@/lib/session";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,14 +13,16 @@ import {
 } from "@/components/ui/table";
 
 function statusVariant(status: string) {
-  if (status === "verified") return "default" as const;
-  if (status === "rejected") return "destructive" as const;
+  if (status === "VERIFIED") return "default" as const;
+  if (status === "REJECTED") return "destructive" as const;
   return "outline" as const;
 }
 
 export default async function RecordsPage() {
   await requireCore();
-  const records = await getCentralRecords();
+  const records = await prisma.achievement.findMany({
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <>
@@ -55,16 +57,16 @@ export default async function RecordsPage() {
                 <TableRow key={record.id}>
                   <TableCell>
                     <Link href={`/review/${record.id}`} className="hover:underline">
-                      {record.member?.full_name ?? "Unknown member"}
+                      {record.memberName}
                     </Link>
                   </TableCell>
-                  <TableCell>{record.member?.department ?? "Unknown"}</TableCell>
-                  <TableCell>{format(new Date(record.occurred_on), "d MMM yyyy")}</TableCell>
+                  <TableCell>{record.department}</TableCell>
+                  <TableCell>{format(new Date(record.achievedOn), "d MMM yyyy")}</TableCell>
                   <TableCell>
                     <Badge variant={statusVariant(record.status)}>{record.status}</Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    Central
+                    {record.centralSyncStatus === "SYNCED" || record.centralSyncStatus === "READY" ? "Central" : "Local"}
                   </TableCell>
                 </TableRow>
               ))

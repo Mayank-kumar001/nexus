@@ -9,10 +9,10 @@ export default async function SignUpPage() {
 
   return (
     <div className="flex min-h-full flex-1 items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md rounded-4xl border bg-card p-8 shadow-md ring-1 ring-foreground/5">
+      <div className="w-full max-w-md rounded-[14px] bg-white border border-[#dddddd] p-8 shadow-[0_2px_6px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.1)]">
         <Brand className="mb-8" />
-        <h1 className="font-heading text-2xl font-bold">Create your account</h1>
-        <p className="mt-2 mb-8 text-sm text-muted-foreground">
+        <h1 className="text-[24px] font-semibold text-[#222222]">Create your account</h1>
+        <p className="mt-2 mb-8 text-[16px] text-[#6a6a6a]">
           Create your central Supabase account with email and password.
         </p>
         <SignUpForm />

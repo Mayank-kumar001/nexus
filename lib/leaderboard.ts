@@ -1,8 +1,10 @@
-import { centralDb, centralError, CENTRAL_TEAM_ID } from "./central";
+import { centralError, CENTRAL_TEAM_ID } from "./central";
 import { DEPARTMENTS } from "./constants";
+import { supabaseServer } from "./supabase-server";
 
 export async function getTeamProgress() {
-  const { data, error } = await centralDb()
+  const db = await supabaseServer();
+  const { data, error } = await db
     .from("submissions")
     .select("status, member_id")
     .eq("team_id", CENTRAL_TEAM_ID);
@@ -11,7 +13,7 @@ export async function getTeamProgress() {
   const submissions = data ?? [];
   const memberIds = [...new Set(submissions.map((row) => row.member_id))];
   const { data: profiles, error: profileError } = memberIds.length
-    ? await centralDb().from("profiles").select("id, department").in("id", memberIds)
+    ? await db.from("profiles").select("id, department").in("id", memberIds)
     : { data: [], error: null };
   if (profileError) throw new Error(centralError(profileError));
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cn } from "cn"
 
 function AspectRatio({

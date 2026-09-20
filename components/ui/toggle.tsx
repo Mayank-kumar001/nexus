@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle"

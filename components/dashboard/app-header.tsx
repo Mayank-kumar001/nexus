@@ -43,7 +43,7 @@ export function AppHeader({ user }: { user: AppUser }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-[#cccccc] bg-[#E5E5E5]/80 backdrop-blur-md">
       <div className="mx-auto flex h-24 sm:h-28 w-full max-w-6xl items-center justify-between gap-2 px-3 sm:px-4">
         <Brand />
         <nav className="hidden items-center gap-1 md:flex">
@@ -52,34 +52,34 @@ export function AppHeader({ user }: { user: AppUser }) {
               key={link.href}
               href={link.href}
               className={cn(
-                "rounded-full px-3 py-1.5 text-sm transition-colors",
+                "rounded-none px-3 py-1.5 text-[12px] uppercase tracking-[1.5px] transition-colors font-bold",
                 isActive(link.href, link.match)
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-black border-b-2 border-black"
+                  : "text-[#666666] hover:text-black"
               )}
             >
               {link.label}
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {isCore ? <Badge>Core</Badge> : <Badge variant="outline">Member</Badge>}
-          <span className="hidden max-w-32 truncate text-xs text-muted-foreground sm:block md:max-w-40 md:text-sm">
+        <div className="flex items-center gap-1.5 sm:gap-4">
+          {isCore ? <Badge className="rounded-none bg-white border-[#cccccc] uppercase tracking-[1px] text-[10px] text-black">Core</Badge> : <Badge variant="outline" className="rounded-none border-[#cccccc] uppercase tracking-[1px] text-[10px] text-[#666666] bg-transparent">Member</Badge>}
+          <span className="hidden max-w-32 truncate text-[12px] font-bold uppercase tracking-[1px] text-black sm:block md:max-w-40">
             {user.name}
           </span>
           <SignOutButton />
         </div>
       </div>
-      <nav className="flex gap-1 overflow-x-auto scrollbar-none border-t border-border/60 px-3 py-1.5 sm:px-4 md:hidden">
+      <nav className="flex gap-1 overflow-x-auto scrollbar-none border-t border-[#cccccc] px-3 py-1.5 sm:px-4 md:hidden">
         {links.map((link) => (
           <Link
             key={link.href}
             href={link.href}
             className={cn(
-              "rounded-full px-3 py-1 text-xs sm:text-sm whitespace-nowrap transition-colors",
+              "rounded-none px-3 py-1.5 text-[10px] uppercase tracking-[1.5px] whitespace-nowrap transition-colors font-bold",
               isActive(link.href, link.match)
-                ? "bg-muted text-foreground font-medium"
-                : "text-muted-foreground hover:text-foreground"
+                ? "text-black border-b-2 border-black"
+                : "text-[#666666] hover:text-black"
             )}
           >
             {link.label}

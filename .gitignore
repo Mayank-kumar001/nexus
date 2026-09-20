@@ -22,6 +22,12 @@
 
 # misc
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 *.pem
 
 # debug
@@ -39,5 +45,41 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+tsconfig.json
 
 /lib/generated/prisma
+
+# IDEs and Editors
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Secrets and Credentials
+*.key
+*.cert
+secrets.json
+credentials.json
+auth.json
+service-account.json
+
+#agents 
+/.agents
+/.agent
+
+# Scratch and test files
+/scratch
+/check*.ts
+/check*.js
+/fetch*.ts
+/test*.ts
+/test*.js
+/query*.ts
+/query*.js
