@@ -47,24 +47,26 @@ export function SignInForm() {
   return (
     <div className="flex flex-col gap-6">
       <form action={signInEmail} className="flex flex-col gap-3">
-        <input type="email" required placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-11 rounded-xl border bg-input/50 px-3 text-sm" />
-        <input type="password" required placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 rounded-xl border bg-input/50 px-3 text-sm" />
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}</Button>
+        <input type="email" required placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-[56px] rounded-[8px] bg-white border border-[#dddddd] px-4 text-[16px] text-[#222222] placeholder:text-[#6a6a6a] focus:outline-none focus:border-2 focus:border-[#222222]" />
+        <input type="password" required placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-[56px] rounded-[8px] bg-white border border-[#dddddd] px-4 text-[16px] text-[#222222] placeholder:text-[#6a6a6a] focus:outline-none focus:border-2 focus:border-[#222222]" />
+        {error ? <p className="text-sm text-[#c13515]">{error}</p> : null}
+        <Button type="submit" disabled={pending} className="h-12 rounded-[8px] bg-[#ff385c] hover:bg-[#e00b41] text-white font-medium text-[16px] border-none mt-3">
+          {pending ? "Signing in…" : "Sign in"}
+        </Button>
       </form>
-      <div className="text-center text-xs text-muted-foreground">or</div>
+      <div className="text-center text-[12px] text-[#6a6a6a]">or</div>
       <Button
         type="button"
-        className="w-full bg-white text-black hover:bg-white/90 font-medium py-6 text-sm"
+        className="h-12 rounded-[8px] bg-white border border-[#222222] hover:bg-[#f7f7f7] text-[#222222] font-medium text-[16px]"
         disabled={pending}
         onClick={signInGithub}
       >
-        <GithubLogoIcon className="size-5" data-icon="inline-start" />
+        <GithubLogoIcon className="size-5 mr-2" />
         {pending ? "Redirecting…" : "Continue with GitHub"}
       </Button>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-[14px] text-[#222222]">
         New to the team?{" "}
-        <Link href="/sign-up" className="text-foreground underline-offset-4 hover:underline">
+        <Link href="/sign-up" className="text-[#222222] font-semibold hover:underline">
           Create an account
         </Link>
       </p>

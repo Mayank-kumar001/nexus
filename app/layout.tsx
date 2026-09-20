@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif, Public_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif, Inter, Oswald } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toast";
+import { AppleNavbar } from "@/components/apple-navbar";
+import { HudBackground } from "@/components/hud-background";
+import { SmoothScroll } from "@/components/ui/smooth-scroll";
+import { PageTransition } from "@/components/ui/page-transition";
 
-const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,6 +18,11 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const oswald = Oswald({
+  subsets: ["latin"],
+  variable: "--font-oswald",
 });
 
 const instrumentSerif = Instrument_Serif({
@@ -41,13 +50,22 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         geistSans.variable,
         geistMono.variable,
         instrumentSerif.variable,
+        oswald.variable,
         "font-sans",
-        publicSans.variable
+        inter.variable
       )}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
-        <Toaster />
+      <body className="min-h-full flex flex-col text-foreground relative bg-transparent">
+        <SmoothScroll>
+          <HudBackground />
+          <div className="relative z-10 flex min-h-full flex-col flex-1">
+            <AppleNavbar />
+            <PageTransition>
+              {children}
+            </PageTransition>
+            <Toaster />
+          </div>
+        </SmoothScroll>
       </body>
     </html>
   );

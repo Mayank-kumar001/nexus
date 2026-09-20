@@ -39,16 +39,16 @@ export function SignUpForm() {
 
   return (
     <div className="flex flex-col gap-6">
-      <input type="email" required placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-11 rounded-xl border bg-input/50 px-3 text-sm" />
-      <input type="password" required minLength={8} placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 rounded-xl border bg-input/50 px-3 text-sm" />
-      {error ? <p className="text-sm text-muted-foreground">{error}</p> : null}
-      <Button type="button" disabled={pending} onClick={signUpEmail}>
+      <input type="email" required placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-[56px] rounded-[8px] bg-white border border-[#dddddd] px-4 text-[16px] text-[#222222] placeholder:text-[#6a6a6a] focus:outline-none focus:border-2 focus:border-[#222222]" />
+      <input type="password" required minLength={8} placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-[56px] rounded-[8px] bg-white border border-[#dddddd] px-4 text-[16px] text-[#222222] placeholder:text-[#6a6a6a] focus:outline-none focus:border-2 focus:border-[#222222]" />
+      {error ? <p className="text-sm text-[#c13515]">{error}</p> : null}
+      <Button type="button" disabled={pending} onClick={signUpEmail} className="h-12 rounded-[8px] bg-[#ff385c] hover:bg-[#e00b41] text-white font-medium text-[16px] border-none mt-2">
         {pending ? "Creating account…" : "Create account"}
       </Button>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-[14px] text-[#222222]">
         Already registered?{" "}
-        <Link href="/sign-in" className="text-foreground underline-offset-4 hover:underline">
-          Sign in
+        <Link href="/sign-in" className="text-[#222222] font-semibold hover:underline">
+          Sign In
         </Link>
       </p>
     </div>
