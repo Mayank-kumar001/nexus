@@ -36,6 +36,7 @@
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "gradient-able-free-admin-template-v5.4.0"
   ]
 }
