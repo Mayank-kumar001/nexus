@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { dbPool } from "@/lib/db";
 
 export type DashboardData = {
   teamMembers: any[];
@@ -8,10 +8,24 @@ export type DashboardData = {
 };
 
 export async function getDashboardData(): Promise<DashboardData> {
-  const allAchievements = await prisma.achievement.findMany({
-    orderBy: { achievedOn: 'desc' },
-    include: { submitter: true }
-  });
+  let allAchievements: any[] = [];
+  try {
+    const result = await dbPool.query(`
+      SELECT a.*, u.name as "submitterName", u.department as "submitterRole" 
+      FROM "achievement" a 
+      LEFT JOIN "user" u ON a."submitterId" = u.id 
+      ORDER BY "achievedOn" DESC
+    `);
+    allAchievements = result.rows;
+  } catch (error) {
+    console.error("Error fetching local achievements:", error);
+    return {
+      teamMembers: [],
+      roleContributionData: [],
+      weeklyTasks: [],
+      rolePerformanceData: []
+    };
+  }
 
   // Calculate Team Members based ONLY on achievements (work done)
   const memberMap = new Map();
@@ -20,8 +34,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     if (!memberMap.has(ach.submitterId)) {
       memberMap.set(ach.submitterId, {
         id: ach.submitterId,
-        name: ach.submitter?.name || ach.memberName, // Use actual user name
-        role: ach.submitter?.department || ach.department || 'Tech',
+        name: ach.submitterName || ach.memberName, // Use actual user name
+        role: ach.submitterRole || ach.department || 'Tech',
         tasksCompleted: 0,
         totalTasks: 0,
         departments: {} as Record<string, number>
@@ -85,7 +99,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .map(a => ({
         title: a.details,
         status: a.status === 'VERIFIED' ? 'completed' : (a.status === 'PENDING' ? 'in-progress' : 'pending'),
-        dueDate: a.achievedOn.toISOString().split('T')[0]
+        dueDate: new Date(a.achievedOn).toISOString().split('T')[0]
       }));
       
     return {
@@ -130,3 +144,4 @@ function getTagColor(name: string) {
   const colors = ['bg-[#0e9dec]', 'bg-[#11c15b]', 'bg-[#ff8a65]', 'bg-[#ab47bc]'];
   return colors[name.length % colors.length];
 }
+

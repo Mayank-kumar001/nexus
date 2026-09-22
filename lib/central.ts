@@ -94,7 +94,7 @@ export type CentralSubmission = {
 };
 
 const centralUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-const centralAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
+const centralKey = process.env.SERVICE_ROLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
 
 function required(value: string | undefined, name: string) {
   if (!value) throw new Error(`${name} is not configured`);
@@ -102,7 +102,7 @@ function required(value: string | undefined, name: string) {
 }
 
 export function centralDb(): SupabaseClient {
-  return createClient(required(centralUrl, "SUPABASE_URL"), required(centralAnonKey, "SUPABASE_ANON_KEY"), {
+  return createClient(required(centralUrl, "SUPABASE_URL"), required(centralKey, "SUPABASE_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
