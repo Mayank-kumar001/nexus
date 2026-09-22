@@ -82,3 +82,21 @@ service-account.json
 /test*.js
 /query*.ts
 /query*.js
+
+# Other agent and editor configs
+/.claude
+/.windsurf
+/CLAUDE.md
+/AGENTS.md
+
+# Non-required stuff and templates
+/airbnb
+/bmw-m
+/lovable
+/spotify
+/warp
+/react-bits
+/lenis
+/gradient-able-free-admin-template-*
+/sci-fi_hud_-_quillvr.glb
+/tsc-errors.txt

@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "postinstall": "prisma generate",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -13,8 +12,6 @@
     "@base-ui/react": "^1.8.0",
     "@gsap/react": "^2.1.2",
     "@phosphor-icons/react": "^2.1.10",
-    "@prisma/adapter-pg": "^7.10.0",
-    "@prisma/client": "^7.10.0",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@shadcn/react": "^0.3.1",
@@ -35,7 +32,6 @@
     "next": "16.3.4",
     "ogl": "^1.0.11",
     "pg": "^8.23.0",
-    "prisma": "^7.10.0",
     "react": "19.2.8",
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.8",
@@ -66,15 +62,9 @@
   ],
   "trustedDependencies": [
     "sharp",
-    "unrs-resolver",
-    "@prisma/engines",
-    "prisma",
-    "@prisma/client"
+    "unrs-resolver"
   ],
   "allowScripts": {
-    "@prisma/engines": true,
-    "prisma": true,
-    "@prisma/client": true,
     "sharp": true,
     "unrs-resolver": true
   }

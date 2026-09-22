@@ -4,10 +4,8 @@ import { revalidatePath } from "next/cache";
 import { DEPARTMENTS } from "@/lib/constants";
 import { getTeamName } from "@/lib/team";
 import { uploadProofImage } from "@/lib/imagekit";
-import { centralError, CENTRAL_ACTIVITIES, CENTRAL_TEAM_ID } from "@/lib/central";
+import { centralDb, centralError, CENTRAL_ACTIVITIES, CENTRAL_TEAM_ID } from "@/lib/central";
 import { requireUser } from "@/lib/session";
-import { supabaseServer } from "@/lib/supabase-server";
-import { prisma } from "@/lib/db";
 
 export type SubmitState = {
   ok: boolean;
@@ -59,43 +57,94 @@ export async function submitAchievement(
     
     const teamName = await getTeamName();
 
-    const localUser = await prisma.user.upsert({
-      where: { email: user.email },
-      update: { name: user.name, image: user.image },
-      create: { 
-        id: user.id, 
-        email: user.email, 
-        name: user.name, 
-        image: user.image,
-        role: user.role,
-        department: user.department,
-        team: user.team 
-      }
+    const fileName = uploaded.url.split("/").pop() || "proof.jpg";
+    const mimeType = fileName.endsWith(".png") ? "image/png" : fileName.endsWith(".webp") ? "image/webp" : "image/jpeg";
+
+    const { data: profiles, error: profilesError } = await centralDb()
+      .from("profiles")
+      .select("id")
+      .eq("team_id", CENTRAL_TEAM_ID)
+      .ilike("full_name", memberName);
+
+    if (profilesError) {
+      throw new Error(`Failed to lookup member: ${profilesError.message}`);
+    }
+
+    if (!profiles || profiles.length === 0) {
+      return { ok: false, message: "Member not found in the central database. Please use their exact registered name." };
+    }
+
+    const memberId = profiles[0].id;
+
+    const centralRecordId = crypto.randomUUID();
+    const { error: centralSyncError } = await centralDb().from("submissions").insert({
+      id: centralRecordId,
+      team_id: CENTRAL_TEAM_ID,
+      member_id: memberId,
+      activity_id: activity.id,
+      title: `${teamName}: ${memberName}`,
+      occurred_on: achievedOn.toISOString(),
+      details: `${department}: ${details}`,
+      external_url: uploaded.url,
+      status: "pending"
     });
 
-    await prisma.achievement.create({
-      data: {
-        memberName,
-        department,
-        team: teamName,
-        achievedOn,
-        details,
-        proofUrl: uploaded.url,
-        proofFileId: uploaded.fileId,
-        status: "PENDING",
-        centralSyncStatus: "NOT_SYNCED",
-        submitterId: localUser.id,
-        activityId: activity.id,
-      }
-    });
+    if (centralSyncError) {
+      throw new Error(centralError(centralSyncError));
+    }
+
+    const { dbPool } = await import("@/lib/db");
+    
+    // Check if the user exists locally by email (to avoid unique constraint violations if IDs differ)
+    let localUserId = user.id;
+    const { rows: existingUsers } = await dbPool.query(`SELECT id FROM "user" WHERE email = $1`, [user.email]);
+    
+    if (existingUsers.length > 0) {
+      localUserId = existingUsers[0].id;
+      // Optionally update their details
+      await dbPool.query(`
+        UPDATE "user" SET 
+          "name" = $2, "image" = $3, "role" = $4, "department" = $5, "team" = $6, "updatedAt" = NOW()
+        WHERE "id" = $1
+      `, [localUserId, user.name, user.image, user.role, user.department, user.team]);
+    } else {
+      // Insert new user
+      await dbPool.query(`
+        INSERT INTO "user" ("id", "name", "email", "image", "role", "department", "team", "createdAt", "updatedAt")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        ON CONFLICT ("id") DO NOTHING
+      `, [user.id, user.name, user.email, user.image, user.role, user.department, user.team]);
+    }
+
+    // Save locally so the dashboard can fetch it
+    await dbPool.query(`
+      INSERT INTO "achievement" (
+        "id", "submitterId", "activityId", "memberName", "department", 
+        "achievedOn", "details", "proofUrl", "proofFileId", "status", "centralSyncStatus", 
+        "centralRecordId", "team", "createdAt", "updatedAt"
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, 'VERIFIED', 'SYNCED', $10, $11, NOW(), NOW()
+      )
+    `, [
+      crypto.randomUUID(),
+      localUserId,
+      activity.id,
+      memberName,
+      department,
+      achievedOn,
+      details,
+      uploaded.url,
+      uploaded.fileId,
+      centralRecordId,
+      teamName
+    ]);
 
     revalidatePath("/dashboard");
-    revalidatePath("/review");
 
     return {
       ok: true,
       message:
-        "Submission received. Core members will verify it before it can count toward the official AARVAK Point System.",
+        "Submission received. Your achievement has been successfully recorded to the AARVAK Point System.",
     };
   } catch (error) {
     console.error("===== submitAchievement ERROR =====", error);
